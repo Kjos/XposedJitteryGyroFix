@@ -1,9 +1,11 @@
 package net.kajos.median;
 
 import android.hardware.*;
+import android.util.SparseArray;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import static de.robv.android.xposed.XposedHelpers.findClass;
@@ -48,92 +50,33 @@ public class MedianFilter implements IXposedHookLoadPackage {
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
-        XposedBridge.log("Android package: " + lpparam.packageName);
-        Class<?> sensorClass = null;
+
         try {
-            sensorClass = findClass(
-                    "com.google.vrtoolkit.cardboard.sensors.HeadTracker",
+            // com.samsung.sensorexp.SensorActivity
+            final Class<?> sensorEQ = findClass(
+                    "android.hardware.SystemSensorManager$SensorEventQueue",
                     lpparam.classLoader);
 
-
-        } catch (Throwable t) {
-            // Do nothing
-        }
-        if (sensorClass == null)
-            return;
-
-        try {
-            XposedBridge.log("Going to inject in HeadTracker onSensorChanged: " + lpparam.packageName);
-
-            XposedHelpers.findAndHookMethod(sensorClass, "onSensorChanged",
-                    SensorEvent.class,
-                    new XC_MethodHook() {
+            XposedBridge.hookAllMethods(sensorEQ, "dispatchSensorEvent", new
+                    XC_MethodHook() {
                         @SuppressWarnings("unchecked")
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) throws
                                 Throwable {
-                            SensorEvent event = (SensorEvent)param.args[0];
-                            if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-                                changeSensorEvent(event.values);
+                            Field field = param.thisObject.getClass().getEnclosingClass().getDeclaredField("sHandleToSensor");
+                            field.setAccessible(true);
+                            int handle = (Integer) param.args[0];
+                            Sensor ss = ((SparseArray<Sensor>) field.get(0)).get(handle);
+                            if(ss.getType() == Sensor.TYPE_GYROSCOPE){
+                                changeSensorEvent((float[]) param.args[1]);
                             }
-                    }
-                }
-            );
+                        }
+                    });
 
-            XposedBridge.log("Installed in: " + lpparam.packageName);
+            XposedBridge.log("Installed sensorevent patch in: " + lpparam.packageName);
 
         } catch (Throwable t) {
-            // Legacy support for old Cardboard games.
-            try {
-                XposedBridge.log("Going to inject in HeadTracker processSensorEvent: " + lpparam.packageName);
-
-                XposedHelpers.findAndHookMethod(sensorClass, "processSensorEvent",
-                        SensorEvent.class,
-                        new XC_MethodHook() {
-                            @SuppressWarnings("unchecked")
-                            @Override
-                            protected void beforeHookedMethod(MethodHookParam param) throws
-                                    Throwable {
-                                SensorEvent event = (SensorEvent)param.args[0];
-                                if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-                                    changeSensorEvent(event.values);
-                                }
-                            }
-                        }
-                );
-
-                XposedBridge.log("Installed in: " + lpparam.packageName);
-
-            } catch (Throwable t2) {
-                Class<?> orientationClass = null;
-                try {
-                    XposedBridge.log("Going to inject in OrientationEKF processGyro: " + lpparam.packageName);
-
-                    orientationClass = findClass(
-                            "com.google.vrtoolkit.cardboard.sensors.internal.OrientationEKF",
-                            lpparam.classLoader);
-
-                } catch (Throwable t3) {
-                    // Do nothing
-                }
-                if (orientationClass == null)
-                    return;
-
-                XposedHelpers.findAndHookMethod(orientationClass, "processGyro",
-                        float[].class,
-                        long.class,
-                        new XC_MethodHook() {
-                            @SuppressWarnings("unchecked")
-                            @Override
-                            protected void beforeHookedMethod(MethodHookParam param) throws
-                                    Throwable {
-                                changeSensorEvent((float[])param.args[0]);
-                            }
-                        }
-                );
-
-                XposedBridge.log("Installed in: " + lpparam.packageName);
-            }
+            // Do nothing
         }
     }
 }
