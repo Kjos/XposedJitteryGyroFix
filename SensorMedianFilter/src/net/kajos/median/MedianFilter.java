@@ -18,7 +18,7 @@ import de.robv.android.xposed.XposedBridge;
 
 
 public class MedianFilter implements IXposedHookLoadPackage {
-    static float medianValues[][] = new float[3][10];
+    static float medianValues[][] = new float[3][20];
 
     static float tmpArray[] = new float[medianValues[0].length];
 
