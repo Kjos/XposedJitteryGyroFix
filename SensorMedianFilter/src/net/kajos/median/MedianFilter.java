@@ -18,47 +18,42 @@ import de.robv.android.xposed.XposedBridge;
 
 
 public class MedianFilter implements IXposedHookLoadPackage {
-    static float medianValues[][] = new float[3][20];
-
-    static float tmpArray[] = new float[medianValues[0].length];
-
-
-    private static void changeSensorEvent(float[] values) {
-        // Shift values
-        for (int k = 0; k < 3; k++)
-            for (int i = medianValues[0].length-1; i > 0; i--) {
-                medianValues[k][i] = medianValues[k][i-1];
-            }
-
-        // Add newest values
-        medianValues[0][0] = values[0];
-        medianValues[1][0] = values[1];
-        medianValues[2][0] = values[2];
-
-        for (int i = 0; i < 3; i++) {
-            for (int k = 0; k < tmpArray.length; k++)
-                tmpArray[k] = medianValues[i][k];
-
-            Arrays.sort(tmpArray);
-
-            float median = tmpArray[tmpArray.length/2];
-
-            // Set median
-            values[i] = median;
-        }
-    }
-
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
 
         try {
-            // com.samsung.sensorexp.SensorActivity
             final Class<?> sensorEQ = findClass(
                     "android.hardware.SystemSensorManager$SensorEventQueue",
                     lpparam.classLoader);
 
             XposedBridge.hookAllMethods(sensorEQ, "dispatchSensorEvent", new
                     XC_MethodHook() {
+                        float medianValues[][] = new float[3][20];
+                        float tmpArray[] = new float[medianValues[0].length];
+
+                        private void changeSensorEvent(float[] values) {
+                            // Shift values
+                            for (int k = 0; k < 3; k++) {
+                                for (int i = tmpArray.length - 1; i > 0; i--) {
+                                    medianValues[k][i] = medianValues[k][i - 1];
+                                }
+
+                                // Add newest values
+                                medianValues[k][0] = values[k];
+
+                                for (int f = 0; f < tmpArray.length; f++) {
+                                    tmpArray[f] = medianValues[k][f];
+                                }
+
+                                Arrays.sort(tmpArray);
+
+                                float median = tmpArray[tmpArray.length/2];
+
+                                // Set median
+                                values[k] = median;
+                            }
+                        }
+
                         @SuppressWarnings("unchecked")
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) throws
