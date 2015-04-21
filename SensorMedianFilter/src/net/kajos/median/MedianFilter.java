@@ -28,7 +28,7 @@ public class MedianFilter implements IXposedHookLoadPackage {
 
             XposedBridge.hookAllMethods(sensorEQ, "dispatchSensorEvent", new
                     XC_MethodHook() {
-                        float medianValues[][] = new float[3][20];
+                        float medianValues[][] = new float[3][10];
                         float tmpArray[] = new float[medianValues[0].length];
 
                         private void changeSensorEvent(float[] values) {
