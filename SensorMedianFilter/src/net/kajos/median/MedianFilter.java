@@ -1,13 +1,10 @@
 package net.kajos.median;
 
-import android.hardware.*;
 import android.util.Log;
 import android.util.SparseArray;
-import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import static de.robv.android.xposed.XposedHelpers.findClass;
 
