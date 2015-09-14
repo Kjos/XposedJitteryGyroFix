@@ -20,10 +20,11 @@ import de.robv.android.xposed.XposedBridge;
 
 
 public class MedianFilter implements IXposedHookLoadPackage {
-	public static XSharedPreferences pref = new XSharedPreferences("net.kajos.median", "pref_settings");
+	public XSharedPreferences pref;
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
+    	pref = new XSharedPreferences(MedianFilter.class.getPackage().getName(), "pref_median"); // load the preferences using Xposed (necessary to be accessible from inside the hook, SharedPreferences() won't work)
     	pref.makeWorldReadable();
 
         try {
@@ -42,8 +43,8 @@ public class MedianFilter implements IXposedHookLoadPackage {
 
                         private void changeSensorEvent(float[] values) {
                         	// Get preferences
-                        	pref.makeWorldReadable();
-                        	pref.reload();
+                        	pref.makeWorldReadable(); // try to make the preferences world readable (because here we are inside the hook, we are not in our app anymore, so normally we do not have the rights to access the preferences of our app)
+                        	pref.reload(); // reload the preferences to get the latest value (ie, if the user changed the values without rebooting the phone)
                         	int filter_size_new = Integer.parseInt(pref.getString("filter_size", "10")); // number of sample values to keep to compute the median
                         	float filter_min_change_new = Float.parseFloat(pref.getString("filter_min_change", "0.0")); // minimum value change threshold in sensor's value to aknowledge the new value (otherwise don't change the value, but we still register the new value in the median array)
 
