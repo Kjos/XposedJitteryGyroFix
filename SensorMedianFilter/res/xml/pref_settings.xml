@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+ <PreferenceCategory
+   android:title="Sensor Median Filter Settings"
+   android:summary="Setup the size and settings of the median filter" >
+   <EditTextPreference
+    android:key="filter_size"
+    android:title="@string/pref_title_filter_size"
+    android:summary="@string/pref_summary_filter_size"
+    android:numeric="integer"
+    android:maxLength="4"
+    android:defaultValue="@string/filter_size_default"
+	/>
+   <EditTextPreference
+    android:key="filter_min_change"
+    android:title="@string/pref_title_filter_min_change"
+    android:summary="@string/pref_summary_filter_min_change"
+    android:maxLength="5"
+    android:defaultValue="@string/filter_min_change_default"
+	/>
+ </PreferenceCategory>
+</PreferenceScreen>
