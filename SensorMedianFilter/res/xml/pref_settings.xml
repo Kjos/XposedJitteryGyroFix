@@ -15,7 +15,7 @@
     android:key="filter_min_change"
     android:title="@string/pref_title_filter_min_change"
     android:summary="@string/pref_summary_filter_min_change"
-    android:maxLength="5"
+    android:maxLength="15"
     android:defaultValue="@string/filter_min_change_default"
 	/>
  </PreferenceCategory>
