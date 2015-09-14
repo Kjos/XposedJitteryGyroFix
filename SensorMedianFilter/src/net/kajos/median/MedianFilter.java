@@ -51,6 +51,7 @@ public class MedianFilter implements IXposedHookLoadPackage {
                         	// Copy new value of min change threshold
                         	filter_min_change = filter_min_change_new;
                         	// Resize the medianValues array and copy the new filter size
+                        	if (filter_size_new < 2) filter_size_new = 2; // validate user input, the array must be at least of size 2 to compute the median
                         	if (filter_size_new != filter_size) {
                         		float cpyArray[][] = new float[3][filter_size];
                         		for (int k = 0; k < 3; k++) {
@@ -59,8 +60,9 @@ public class MedianFilter implements IXposedHookLoadPackage {
                         			}
                         		}
                         		medianValues = new float[3][filter_size_new];
+                        		int min_filter_size = (filter_size < filter_size_new) ? filter_size : filter_size_new;
                         		for (int k = 0; k < 3; k++) {
-                        			for (int i = 0; i < filter_size; i++) {
+                        			for (int i = 0; i < min_filter_size; i++) {
                         				medianValues[k][i] = cpyArray[k][i];
                         			}
                         		}
@@ -96,9 +98,9 @@ public class MedianFilter implements IXposedHookLoadPackage {
                                 		Math.abs(median - medianValues[k][1]) >= filter_min_change) { // or it is enabled (value > 0) and then we check if the current median difference with the previous sensor's value is above the minimum change threshold
 	                                // Set median in gyroscope
 	                                values[k] = median;
-	                                Log.d("MedianFilter", "MedianFilter median: "+Float.toString(median)+" previous_val:"+Float.toString(medianValues[k][1]));
+	                                Log.d("MedianFilter", "MedianFilter axis: "+k+" median: "+Float.toString(median)+" previous_val:"+Float.toString(medianValues[k][1]));
                                 } else {
-                                	Log.d("MedianFilter", "MedianFilter NOPE median: "+Float.toString(median)+" current_val:"+Float.toString(medianValues[k][0]));
+                                	Log.d("MedianFilter", "MedianFilter NOPE axis: "+k+" median: "+Float.toString(median)+" current_val:"+Float.toString(medianValues[k][0]));
                                 	values[k] = medianValues[k][1];
                                 	medianValues[k][0] = medianValues[k][1];
                                 }
