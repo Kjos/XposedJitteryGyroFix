@@ -89,7 +89,9 @@ public class MedianFilter implements IXposedHookLoadPackage {
                                 // -- Compute the median and replace the current gyroscope's value
 
                                 float filteredval = 0.0f;
-                                if (filter_type.equals("median")) {
+                                if (filter_type.equals("none")) {
+                                	filteredval = values[k];
+                                } else if (filter_type.equals("median")) {
 	                                // Median
 	                                // Copy the values to a temporary array
 	                                for (int f = 0; f < tmpArray.length; f++) {

@@ -10,11 +10,13 @@
 	    <item>Mean (running average)</item>
 	    <item>Low-pass filter</item>
 	    <item>Additive smoothing (experimental)</item>
+	    <item>None (disable)</item>
 	 </string-array>
      <string-array name="filter_type_options_alias">
 	    <item>median</item>
 	    <item>mean</item>
 	    <item>lowpass</item>
 	    <item>addsmooth</item>
+	    <item>none</item>
 	 </string-array>
  </resources>
