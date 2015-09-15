@@ -6,10 +6,22 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_median_filter_settings">Sensor Median Filter Settings</string>
-    
+    <string name="catpref_title_filter">Gyroscope Sensor Filter Settings</string>
+    <string name="catpref_summary_filter">Setup the settings of the gyroscope filter</string>
+    <string name="catpref_title_other">Other Settings</string>
+    <string name="catpref_summary_other">Setup other anti-jittering options (independently of the filter)</string>
+
+    <string name="pref_title_filter_type">Filter type</string>
+    <string name="pref_summary_filter_type">Type of the filter that will be used</string>
     <string name="pref_title_filter_size">Filter size</string>
-    <string name="pref_summary_filter_size">Number of values samples to keep in memory to compute the median</string>
+    <string name="pref_summary_filter_size">Number of values samples to keep in memory to compute the filter, aka window size (default: 10)</string>
+    <string name="pref_title_filter_alpha">Filter optional value</string>
+    <string name="pref_summary_filter_alpha">Optional constant that will be used to configure some types of filters (such as lowpass or additive smoothing). Set -1 to use defaults, or between 0.0 and 1.0 to enable.</string>
     <string name="pref_title_filter_min_change">Minimum value change threshold</string>
-    <string name="pref_summary_filter_min_change">Set this to a value higher than 0 to prevent the sensor to use the new value if the change compared to the median is below this threshold</string>
+    <string name="pref_summary_filter_min_change">Prevents the sensor to use the new value if the change compared to the median is below this threshold (set 0.0 to disable)</string>
+    <string name="pref_title_filter_stationary_min_change">Stationary minimum value threshold</string>
+    <string name="pref_summary_filter_stationary_min_change">When stationary, prevents the sensor from moving if the change is below the given threshold. This is similar to min value change but here it only affects the stationary state (when you are not moving) (set 0.0 to disable)</string>
+    <string name="pref_title_filter_round_precision">Rounding precision</string>
+    <string name="pref_summary_filter_round_precision">Round all sensor\'s values to the given decimal (set 0 to disable)</string>
 
 </resources>
