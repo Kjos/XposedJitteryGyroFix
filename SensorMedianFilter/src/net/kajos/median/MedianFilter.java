@@ -89,7 +89,7 @@ public class MedianFilter implements IXposedHookLoadPackage {
                                 Arrays.sort(tmpArray);
 
                                 // Pick the median value
-                                float median = tmpArray[tmpArray.length/2];
+                                float median = tmpArray[(int)(tmpArray.length/2)];
 
                                 
                                 if (filter_min_change <= 0.0f || // either filter min change threshold is disabled (value == 0)
