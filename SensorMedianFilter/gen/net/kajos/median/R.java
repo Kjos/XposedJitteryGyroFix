@@ -8,23 +8,43 @@
 package net.kajos.median;
 
 public final class R {
+    public static final class array {
+        public static final int filter_type_options=0x7f050000;
+        public static final int filter_type_options_alias=0x7f050001;
+    }
     public static final class attr {
     }
     public static final class drawable {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class string {
-        public static final int action_settings=0x7f040005;
-        public static final int app_name=0x7f040002;
-        public static final int filter_min_change_default=0x7f040001;
-        public static final int filter_size_default=0x7f040000;
-        public static final int hello_world=0x7f040004;
-        public static final int pref_summary_filter_min_change=0x7f04000a;
-        public static final int pref_summary_filter_size=0x7f040008;
-        public static final int pref_title_filter_min_change=0x7f040009;
-        public static final int pref_title_filter_size=0x7f040007;
-        public static final int title_activity_median_filter_settings=0x7f040006;
-        public static final int title_activity_sensor_median_settings_main=0x7f040003;
+        public static final int action_settings=0x7f040009;
+        public static final int app_name=0x7f040006;
+        public static final int catpref_summary_filter=0x7f04000c;
+        public static final int catpref_summary_other=0x7f04000e;
+        public static final int catpref_title_filter=0x7f04000b;
+        public static final int catpref_title_other=0x7f04000d;
+        public static final int filter_alpha_default=0x7f040002;
+        public static final int filter_min_change_default=0x7f040003;
+        public static final int filter_round_precision_default=0x7f040005;
+        public static final int filter_size_default=0x7f040001;
+        public static final int filter_stationary_min_change_default=0x7f040004;
+        public static final int filter_type_default=0x7f040000;
+        public static final int hello_world=0x7f040008;
+        public static final int pref_summary_filter_alpha=0x7f040014;
+        public static final int pref_summary_filter_min_change=0x7f040016;
+        public static final int pref_summary_filter_round_precision=0x7f04001a;
+        public static final int pref_summary_filter_size=0x7f040012;
+        public static final int pref_summary_filter_stationary_min_change=0x7f040018;
+        public static final int pref_summary_filter_type=0x7f040010;
+        public static final int pref_title_filter_alpha=0x7f040013;
+        public static final int pref_title_filter_min_change=0x7f040015;
+        public static final int pref_title_filter_round_precision=0x7f040019;
+        public static final int pref_title_filter_size=0x7f040011;
+        public static final int pref_title_filter_stationary_min_change=0x7f040017;
+        public static final int pref_title_filter_type=0x7f04000f;
+        public static final int title_activity_median_filter_settings=0x7f04000a;
+        public static final int title_activity_sensor_median_settings_main=0x7f040007;
     }
     public static final class style {
         /** 
@@ -42,11 +62,11 @@ public final class R {
     
  API 11 theme customizations can go here. 
          */
-        public static final int AppBaseTheme=0x7f050000;
+        public static final int AppBaseTheme=0x7f060000;
         /**  Application theme. 
  All customizations that are NOT specific to a particular API-level can go here. 
          */
-        public static final int AppTheme=0x7f050001;
+        public static final int AppTheme=0x7f060001;
     }
     public static final class xml {
         public static final int pref_settings=0x7f030000;
