@@ -32,7 +32,8 @@ public class MedianFilter implements IXposedHookLoadPackage {
             XposedBridge.hookAllMethods(sensorEQ, "dispatchSensorEvent", new
                     XC_MethodHook() {
             			int filter_size = 10;
-            			float filter_min_change = 0.0f; // TODO: should use a different threshold for each dimension
+            			float filter_min_change = 0.0f; // TODO: maybe we should use a different threshold for each axis?
+            			float filter_stationary_min_change = 0.0f;
 
 		            	// Init the variables
                         float medianValues[][] = new float[3][filter_size]; // stores the last sensor's values in each dimension (3D so 3 dimensions)
@@ -49,12 +50,15 @@ public class MedianFilter implements IXposedHookLoadPackage {
                         	pref.makeWorldReadable(); // try to make the preferences world readable (because here we are inside the hook, we are not in our app anymore, so normally we do not have the rights to access the preferences of our app)
                         	pref.reload(); // reload the preferences to get the latest value (ie, if the user changed the values without rebooting the phone)
                         	int filter_size_new = Integer.parseInt(pref.getString("filter_size", "10")); // number of sample values to keep to compute the median
-                        	float filter_min_change_new = Float.parseFloat(pref.getString("filter_min_change", "0.0")); // minimum value change threshold in sensor's value to aknowledge the new value (otherwise don't change the value, but we still register the new value in the median array)
                         	String filter_type = pref.getString("filter_type", "median");
                         	float filter_alpha = Float.parseFloat(pref.getString("filter_alpha", "-1"));
+                        	float filter_min_change_new = Float.parseFloat(pref.getString("filter_min_change", "0.0")); // minimum value change threshold in sensor's value to aknowledge the new value (otherwise don't change the value, but we still register the new value in the median array)
+                        	float filter_stationary_min_change_new = Float.parseFloat(pref.getString("filter_stationary_min_change", "0.0"));
+                        	int filter_round_precision = Integer.parseInt(pref.getString("filter_round_precision", "0"));
 
                         	// Copy new value of min change threshold
                         	filter_min_change = filter_min_change_new;
+                        	filter_stationary_min_change = filter_stationary_min_change_new;
                         	// Resize the medianValues array and copy the new filter size
                         	if (filter_size_new < 1) filter_size_new = 1; // validate user input, the array must be at least of size 1 (this disables the computation of the mean, but other options will still work)
                         	if (filter_size_new != filter_size) {
@@ -125,17 +129,32 @@ public class MedianFilter implements IXposedHookLoadPackage {
                                 }
 
                                 // Update the sensor's value for each axis
-                                if (values[k] != 0.0f) {
-	                                if (filter_min_change <= 0.0f || // either filter min change threshold is disabled (value == 0)
-	                                		Math.abs(values[k] - filteredval) >= filter_min_change) { // or it is enabled (value > 0) and then we check if the current median difference with the previous sensor's value is above the minimum change threshold
-		                                // Set median in place of the value for this sensor's axis
-	                                	Log.d("MedianFilter", "MedianFilter moving axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(medianValues[k][1]));
-		                                values[k] = filteredval;
-	                                } else {
-	                                	// else do not move this sensor's axis
-	                                	Log.d("MedianFilter", "MedianFilter NOT MOVING axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(medianValues[k][1]));
-	                                	values[k] = 0.0f; // nullify the sensor for this axis, so that it does not move
-	                                }
+                                if (values[k] != 0.0f) { // act on the sensor only if the value is not 0 (ie, if the sensor is moving, if it's not, we'd better stick to that and not replace the value with the median)
+
+                                	// Min stationary value change threshold
+                                	// remember that gyroscope's values are relative, so 0.0 means the sensor didn't move for a given axis, and any other value (positive or negative) means it rotated in the given axis
+                                	// so if the value is close to 0 but not quite, but still below than a minimum threshold, we consider that this is noise and we don't move
+                                	if (filter_stationary_min_change > 0.0f && values[k] <= filter_stationary_min_change) {
+                                		values[k] = 0.0f;
+                                	} else {
+
+                                		// Min value change threshold
+		                                if (filter_min_change <= 0.0f || // either filter min change threshold is disabled (value == 0)
+		                                		Math.abs(values[k] - filteredval) >= filter_min_change) { // or it is enabled (value > 0) and then we check if the current median difference with the previous sensor's value is above the minimum change threshold
+			                                // Set median in place of the value for this sensor's axis
+		                                	Log.d("MedianFilter", "MedianFilter moving axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(medianValues[k][1]));
+			                                values[k] = filteredval;
+		                                } else {
+		                                	// else do not move this sensor's axis
+		                                	Log.d("MedianFilter", "MedianFilter NOT MOVING axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(medianValues[k][1]));
+		                                	values[k] = 0.0f; // nullify the sensor for this axis, so that it does not move
+		                                }
+                                	}
+                                }
+
+                                // Rounding the value
+                                if (filter_round_precision > 0) {
+                                	values[k] = (float)Math.floor(values[k] * filter_round_precision +.5) / filter_round_precision;
                                 }
 
                                 // Remember the current sensor's value

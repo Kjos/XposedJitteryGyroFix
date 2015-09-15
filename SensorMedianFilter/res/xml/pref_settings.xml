@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
  <PreferenceCategory
-   android:title="Gyroscope Sensor Filter Settings"
-   android:summary="Setup the settings of the gyroscope filter" >
+   android:title="@string/catpref_title_filter"
+   android:summary="@string/catpref_summary_filter" >
    <ListPreference 
     android:key="filter_type"
     android:title="@string/pref_title_filter_type"
@@ -28,14 +28,29 @@
  </PreferenceCategory>
 
  <PreferenceCategory
-   android:title="Other Settings"
-   android:summary="Setup other anti-jittering options (independently of the filter)" >
+   android:title="@string/catpref_title_other"
+   android:summary="@string/catpref_summary_other" >
    <EditTextPreference
     android:key="filter_min_change"
     android:title="@string/pref_title_filter_min_change"
     android:summary="@string/pref_summary_filter_min_change"
     android:maxLength="15"
     android:defaultValue="@string/filter_min_change_default"
+	/>
+   <EditTextPreference
+    android:key="filter_stationary_min_change"
+    android:title="@string/pref_title_filter_stationary_min_change"
+    android:summary="@string/pref_summary_filter_stationary_min_change"
+    android:maxLength="15"
+    android:defaultValue="@string/filter_stationary_min_change_default"
+	/>
+   <EditTextPreference
+    android:key="filter_round_precision"
+    android:title="@string/pref_title_filter_round_precision"
+    android:summary="@string/pref_summary_filter_round_precision"
+    android:numeric="integer"
+    android:maxLength="15"
+    android:defaultValue="@string/filter_round_precision_default"
 	/>
  </PreferenceCategory>
 </PreferenceScreen>

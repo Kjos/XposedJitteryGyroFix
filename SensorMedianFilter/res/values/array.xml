@@ -2,8 +2,10 @@
  <resources>
      <string name="filter_type_default">median</string>
      <string name="filter_size_default">10</string>
-     <string name="filter_min_change_default">0.0</string>
      <string name="filter_alpha_default">-1</string>
+     <string name="filter_min_change_default">0.0</string>
+     <string name="filter_stationary_min_change_default">0.0</string>
+     <string name="filter_round_precision_default">0</string>
      
      <string-array name="filter_type_options">
 	    <item>Median</item>
