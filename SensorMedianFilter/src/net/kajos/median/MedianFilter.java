@@ -134,7 +134,7 @@ public class MedianFilter implements IXposedHookLoadPackage {
                                 	// Min stationary value change threshold
                                 	// remember that gyroscope's values are relative, so 0.0 means the sensor didn't move for a given axis, and any other value (positive or negative) means it rotated in the given axis
                                 	// so if the value is close to 0 but not quite, but still below than a minimum threshold, we consider that this is noise and we don't move
-                                	if (filter_stationary_min_change > 0.0f && values[k] <= filter_stationary_min_change) {
+                                	if (filter_stationary_min_change > 0.0f && Math.abs(values[k]) <= filter_stationary_min_change) {
                                 		values[k] = 0.0f;
                                 	} else {
 
@@ -150,11 +150,11 @@ public class MedianFilter implements IXposedHookLoadPackage {
 		                                	values[k] = 0.0f; // nullify the sensor for this axis, so that it does not move
 		                                }
                                 	}
-                                }
 
-                                // Rounding the value
-                                if (filter_round_precision > 0) {
-                                	values[k] = (float)Math.floor(values[k] * filter_round_precision +.5) / filter_round_precision;
+                                    // Rounding the value
+                                    if (filter_round_precision > 0) {
+                                    	values[k] = (float)Math.floor(values[k] * filter_round_precision +.5) / filter_round_precision;
+                                    }
                                 }
 
                                 // Remember the current sensor's value
