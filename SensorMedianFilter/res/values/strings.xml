@@ -8,8 +8,8 @@
     <string name="title_activity_median_filter_settings">Sensor Median Filter Settings</string>
     
     <string name="pref_title_filter_size">Filter size</string>
-    <string name="pref_summary_filter_size">Number of values samples to keep in memory to compute the median</string>
+    <string name="pref_summary_filter_size">Number of values samples to keep in memory to compute the median (set 1 to disable, default: 10)</string>
     <string name="pref_title_filter_min_change">Minimum value change threshold</string>
-    <string name="pref_summary_filter_min_change">Set this to a value higher than 0 to prevent the sensor to use the new value if the change compared to the median is below this threshold</string>
+    <string name="pref_summary_filter_min_change">Prevents the sensor to use the new value if the change compared to the median is below this threshold (set 0.0 to disable)</string>
 
 </resources>
