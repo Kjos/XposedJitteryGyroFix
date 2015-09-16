@@ -1,4 +1,4 @@
-package net.kajos.median;
+package net.kajos.gyronoisefilter;
 
 import android.util.Log;
 import android.util.SparseArray;
@@ -16,12 +16,12 @@ import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 
 
-public class MedianFilter implements IXposedHookLoadPackage {
+public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	public XSharedPreferences pref;
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
-    	pref = new XSharedPreferences(MedianFilter.class.getPackage().getName(), "pref_median"); // load the preferences using Xposed (necessary to be accessible from inside the hook, SharedPreferences() won't work)
+    	pref = new XSharedPreferences(GyroscopeNoiseFilter.class.getPackage().getName(), "pref_median"); // load the preferences using Xposed (necessary to be accessible from inside the hook, SharedPreferences() won't work)
     	pref.makeWorldReadable();
 
         try {
@@ -115,12 +115,12 @@ public class MedianFilter implements IXposedHookLoadPackage {
 
                                 } else if (filter_type.equals("lowpass")) {
 	                                // Low pass filter
-	                                float alpha = 0.2f;
+	                                float alpha = 0.5f;
 	                                if (filter_alpha >= 0.0f) alpha = filter_alpha;
 	                                filteredval = lowPass(alpha, values[k], prevValues[k]);
 
                                 } else if (filter_type.equals("addsmooth")) {
-	                            	// Additive smoothing
+	                            	// Additive smoothing (kind of, I'm not sure the computation is really correct since it's in the continuous domain, you should not use this method)
 	                                float alpha = 0.1f;
 	                                if (filter_alpha >= 0.0f) alpha = filter_alpha;
 	                                float sum = 0.0f;
@@ -155,6 +155,8 @@ public class MedianFilter implements IXposedHookLoadPackage {
                                     if (filter_round_precision > 0) {
                                     	values[k] = (float)Math.floor(values[k] * filter_round_precision +.5) / filter_round_precision;
                                     }
+
+                                    Log.d("MedianFilter", "MedianFilter final value axis: "+k+" value: "+Float.toString(values[k]));
                                 }
 
                                 // Remember the current sensor's value
@@ -170,7 +172,7 @@ public class MedianFilter implements IXposedHookLoadPackage {
                             field.setAccessible(true);
                             int handle = (Integer) param.args[0];
                             Sensor ss = ((SparseArray<Sensor>) field.get(0)).get(handle);
-                            if(ss.getType() == Sensor.TYPE_GYROSCOPE){
+                            if(ss.getType() == Sensor.TYPE_GYROSCOPE || ss.getType() == Sensor.TYPE_GYROSCOPE_UNCALIBRATED){
                                 changeSensorEvent((float[]) param.args[1]);
                             }
                         }
