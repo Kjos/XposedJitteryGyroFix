@@ -115,12 +115,12 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 
                                 } else if (filter_type.equals("lowpass")) {
 	                                // Low pass filter
-	                                float alpha = 0.2f;
+	                                float alpha = 0.5f;
 	                                if (filter_alpha >= 0.0f) alpha = filter_alpha;
 	                                filteredval = lowPass(alpha, values[k], prevValues[k]);
 
                                 } else if (filter_type.equals("addsmooth")) {
-	                            	// Additive smoothing
+	                            	// Additive smoothing (kind of, I'm not sure the computation is really correct since it's in the continuous domain, you should not use this method)
 	                                float alpha = 0.1f;
 	                                if (filter_alpha >= 0.0f) alpha = filter_alpha;
 	                                float sum = 0.0f;
@@ -155,6 +155,8 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                                     if (filter_round_precision > 0) {
                                     	values[k] = (float)Math.floor(values[k] * filter_round_precision +.5) / filter_round_precision;
                                     }
+
+                                    Log.d("MedianFilter", "MedianFilter final value axis: "+k+" value: "+Float.toString(values[k]));
                                 }
 
                                 // Remember the current sensor's value
