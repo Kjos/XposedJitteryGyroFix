@@ -1,10 +1,10 @@
-package net.kajos.median;
+package net.kajos.gyronoisefilter;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 
-public class MedianFilterSettingsActivity extends PreferenceActivity {
+public class GyroscopeNoiseFilterSettingsActivity extends PreferenceActivity {
 
 	@SuppressWarnings("deprecation")
 	@Override

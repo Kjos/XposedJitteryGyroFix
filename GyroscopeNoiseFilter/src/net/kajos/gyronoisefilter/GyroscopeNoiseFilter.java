@@ -1,4 +1,4 @@
-package net.kajos.median;
+package net.kajos.gyronoisefilter;
 
 import android.util.Log;
 import android.util.SparseArray;
@@ -16,12 +16,12 @@ import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 
 
-public class MedianFilter implements IXposedHookLoadPackage {
+public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	public XSharedPreferences pref;
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
-    	pref = new XSharedPreferences(MedianFilter.class.getPackage().getName(), "pref_median"); // load the preferences using Xposed (necessary to be accessible from inside the hook, SharedPreferences() won't work)
+    	pref = new XSharedPreferences(GyroscopeNoiseFilter.class.getPackage().getName(), "pref_median"); // load the preferences using Xposed (necessary to be accessible from inside the hook, SharedPreferences() won't work)
     	pref.makeWorldReadable();
 
         try {

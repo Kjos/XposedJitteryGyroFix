@@ -1,4 +1,4 @@
-# JitteryGyroFixForCardboard
+# Xposed Gyroscope Noise Filter
 Apply a noise filter on gyroscope to avoid jitter in head tracking / VR apps such as Google Cardboard. For example useful for Moto G and Huawei Ascend phones, but can be used with any rooted Android phone.
 
 Needs Xposed in order to be installed.

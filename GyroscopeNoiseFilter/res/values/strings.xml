@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Sensor Median Filter</string>
-    <string name="title_activity_sensor_median_settings_main">SensorMedianSettingsMainActivity</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">Gyroscope Noise Filter</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_median_filter_settings">Sensor Median Filter Settings</string>
-    <string name="catpref_title_filter">Gyroscope Sensor Filter Settings</string>
+    <string name="title_activity_settings">Gyroscope Noise Filter Settings</string>
+    <string name="catpref_title_filter">Gyroscope Noise Filter Settings</string>
     <string name="catpref_summary_filter">Setup the settings of the gyroscope filter</string>
     <string name="catpref_title_other">Other Settings</string>
     <string name="catpref_summary_other">Setup other anti-jittering options (independently of the filter)</string>
