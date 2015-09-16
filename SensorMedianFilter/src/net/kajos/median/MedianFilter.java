@@ -170,7 +170,7 @@ public class MedianFilter implements IXposedHookLoadPackage {
                             field.setAccessible(true);
                             int handle = (Integer) param.args[0];
                             Sensor ss = ((SparseArray<Sensor>) field.get(0)).get(handle);
-                            if(ss.getType() == Sensor.TYPE_GYROSCOPE){
+                            if(ss.getType() == Sensor.TYPE_GYROSCOPE || ss.getType() == Sensor.TYPE_GYROSCOPE_UNCALIBRATED){
                                 changeSensorEvent((float[]) param.args[1]);
                             }
                         }
