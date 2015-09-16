@@ -3,6 +3,8 @@ Apply a noise filter on gyroscope to avoid jitter in head tracking / VR apps suc
 
 Needs Xposed in order to be installed.
 
+Licensed under GPLv2+ (GNU General Public License v2 or later at your convenience).
+
 ## Description
 
 The gyroscope is the main sensor for head tracking / virtual reality apps.
@@ -29,3 +31,7 @@ This module currently implements a few different strategies to filter and reduce
 6. **Rounding precision**: round all sensor's values to the given decimal.
 
 Options can be changed on-the-fly without having to restart the phone, and are instantly applied to the sensor, so that you can switch between this option screen and a VR app to test for the parameters that reduce the jitter the most for you.
+
+## ToDo
+
+* Implement the various filters and strategies from the opensource app [GyroscopeExplorer](https://github.com/KEOpenSource/GyroscopeExplorer).
