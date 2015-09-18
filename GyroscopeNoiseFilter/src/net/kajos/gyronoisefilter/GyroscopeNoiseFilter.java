@@ -208,7 +208,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                         }
                     });
 
-            XposedBridge.log("Installed sensorevent patch in: " + lpparam.packageName);
+            Log.d(TAG, "Installed sensorevent patch in: " + lpparam.packageName);
 
         } catch (Throwable t) {
             // Do nothing
