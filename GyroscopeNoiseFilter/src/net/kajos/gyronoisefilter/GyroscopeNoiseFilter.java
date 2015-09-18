@@ -189,7 +189,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
         Log.d(TAG, "Package currently in: " + lpparam.packageName);
         try {
             final Class<?> cla = findClass(
-                    "com.google.vrtoolkit.cardboard.CardboardNativeActivity",
+                    "com.google.vrtoolkit.cardboard.HeadTransform",
                     lpparam.classLoader);
 
             XposedBridge.hookAllMethods(cla, "getCurrentEyeParams", new
@@ -200,37 +200,11 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                         protected void afterHookedMethod(MethodHookParam param) throws
                                 Throwable {
                             Log.d(TAG, "Hook 1!");
-                            Field field = param.args[0].getClass().getDeclaredField("headView");
+                            Field field = param.thisObject.getClass().getDeclaredField("headView");
                             field.setAccessible(true);
                             float[] headtrackerArray = (float[])field.get(param.args[0]);
                             Log.d(TAG, "First value: " + headtrackerArray[0]);
-
-                        }
-                    });
-
-            Log.d(TAG, "Installed sensorevent patch in: " + lpparam.packageName);
-
-        } catch (Throwable t) {
-            // Do nothing
-        }
-
-        Log.d(TAG, "Package currently in: " + lpparam.packageName);
-        try {
-            final Class<?> cla = findClass(
-                    "com.google.vrtoolkit.cardboard.CardboardView",
-                    lpparam.classLoader);
-
-            XposedBridge.hookAllMethods(cla, "getCurrentEyeParams", new
-                    XC_MethodHook() {
-
-                        @SuppressWarnings("unchecked")
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws
-                                Throwable {
-                            Log.d(TAG, "Hook 3!");
-                            Field field = param.args[0].getClass().getDeclaredField("headView");
-                            field.setAccessible(true);
-                            float[] headtrackerArray = (float[])field.get(param.args[0]);
+                            headtrackerArray = (float[])getObjectField(param.thisObject, "headView");
                             Log.d(TAG, "First value: " + headtrackerArray[0]);
 
                         }
