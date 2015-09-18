@@ -7,6 +7,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import static de.robv.android.xposed.XposedHelpers.findClass;
+import static de.robv.android.xposed.XposedHelpers.getObjectField;
 
 import android.hardware.Sensor;
 
@@ -18,6 +19,7 @@ import de.robv.android.xposed.XposedBridge;
 
 public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	public XSharedPreferences pref;
+    private static final String TAG = "GyroFilter";
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
@@ -175,6 +177,56 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                             if(ss.getType() == Sensor.TYPE_GYROSCOPE || ss.getType() == Sensor.TYPE_GYROSCOPE_UNCALIBRATED){
                                 changeSensorEvent((float[]) param.args[1]);
                             }
+                        }
+                    });
+
+            XposedBridge.log("Installed sensorevent patch in: " + lpparam.packageName);
+
+        } catch (Throwable t) {
+            // Do nothing
+        }
+        try {
+            final Class<?> cla = findClass(
+                    "com.google.vrtoolkit.cardboard.CardboardViewApi",
+                    lpparam.classLoader);
+
+            XposedBridge.hookAllMethods(cla, "getCurrentEyeParams", new
+                    XC_MethodHook() {
+
+                        @SuppressWarnings("unchecked")
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) throws
+                                Throwable {
+                            Log.d(TAG, "Hook 1!");
+                            Field field = param.args[0].getClass().getDeclaredField("headView");
+                            field.setAccessible(true);
+                            float[] headtrackerArray = (float[])field.get(param.args[0]);
+                            Log.d(TAG, "First value: " + headtrackerArray[0]);
+
+                        }
+                    });
+
+            XposedBridge.log("Installed sensorevent patch in: " + lpparam.packageName);
+
+        } catch (Throwable t) {
+            // Do nothing
+        }
+        try {
+            final Class<?> cla = findClass(
+                    "com.google.vrtoolkit.cardboard.CardboardViewNativeImpl",
+                    lpparam.classLoader);
+
+            XposedBridge.hookAllMethods(cla, "getCurrentEyeParams", new
+                    XC_MethodHook() {
+
+                        @SuppressWarnings("unchecked")
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) throws
+                                Throwable {
+                            Log.d(TAG, "Hook 2!");
+                            float[] headtrackerArray = (float[])getObjectField(param.args[0], "headView");
+                            Log.d(TAG, "First value: " + headtrackerArray[0]);
+
                         }
                     });
 
