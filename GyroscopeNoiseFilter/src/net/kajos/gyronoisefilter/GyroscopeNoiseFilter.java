@@ -192,7 +192,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                     "com.google.vrtoolkit.cardboard.HeadTransform",
                     lpparam.classLoader);
 
-            XposedBridge.hookAllMethods(cla, "getCurrentEyeParams", new
+            XposedBridge.hookAllMethods(cla, "getHeadView", new
                     XC_MethodHook() {
 
                         @SuppressWarnings("unchecked")
