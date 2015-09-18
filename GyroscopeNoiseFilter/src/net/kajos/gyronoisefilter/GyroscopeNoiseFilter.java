@@ -195,7 +195,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 
                         @SuppressWarnings("unchecked")
                         @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws
+                        protected void afterHookedMethod(MethodHookParam param) throws
                                 Throwable {
                             Log.d(TAG, "Hook 1!");
                             Field field = param.args[0].getClass().getDeclaredField("headView");
@@ -221,7 +221,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 
                         @SuppressWarnings("unchecked")
                         @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws
+                        protected void afterHookedMethod(MethodHookParam param) throws
                                 Throwable {
                             Log.d(TAG, "Hook 2!");
                             float[] headtrackerArray = (float[])getObjectField(param.args[0], "headView");
