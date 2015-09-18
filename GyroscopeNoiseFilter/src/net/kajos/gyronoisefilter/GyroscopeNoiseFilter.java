@@ -189,7 +189,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
         Log.d(TAG, "Package currently in: " + lpparam.packageName);
         try {
             final Class<?> cla = findClass(
-                    "com.google.vrtoolkit.cardboard.CardboardViewApi",
+                    "com.google.vrtoolkit.cardboard.CardboardNativeActivity",
                     lpparam.classLoader);
 
             XposedBridge.hookAllMethods(cla, "getCurrentEyeParams", new
@@ -213,9 +213,11 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
         } catch (Throwable t) {
             // Do nothing
         }
+
+        Log.d(TAG, "Package currently in: " + lpparam.packageName);
         try {
             final Class<?> cla = findClass(
-                    "com.google.vrtoolkit.cardboard.CardboardViewNativeImpl",
+                    "com.google.vrtoolkit.cardboard.CardboardView",
                     lpparam.classLoader);
 
             XposedBridge.hookAllMethods(cla, "getCurrentEyeParams", new
@@ -225,14 +227,16 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) throws
                                 Throwable {
-                            Log.d(TAG, "Hook 2!");
-                            float[] headtrackerArray = (float[])getObjectField(param.args[0], "headView");
+                            Log.d(TAG, "Hook 3!");
+                            Field field = param.args[0].getClass().getDeclaredField("headView");
+                            field.setAccessible(true);
+                            float[] headtrackerArray = (float[])field.get(param.args[0]);
                             Log.d(TAG, "First value: " + headtrackerArray[0]);
 
                         }
                     });
 
-            XposedBridge.log("Installed sensorevent patch in: " + lpparam.packageName);
+            Log.d(TAG, "Installed sensorevent patch in: " + lpparam.packageName);
 
         } catch (Throwable t) {
             // Do nothing
