@@ -185,6 +185,8 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
         } catch (Throwable t) {
             // Do nothing
         }
+
+        Log.d(TAG, "Package currently in: " + lpparam.packageName);
         try {
             final Class<?> cla = findClass(
                     "com.google.vrtoolkit.cardboard.CardboardViewApi",
