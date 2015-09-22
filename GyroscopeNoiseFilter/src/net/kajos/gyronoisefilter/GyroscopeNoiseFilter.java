@@ -80,7 +80,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                         		filter_size = filter_size_new;
                         	}
 
-                        	Log.d("MedianFilter", "MedianFilter variables: filter_size: "+Integer.toString(filter_size)+" filter_min_change:"+Float.toString(filter_min_change));
+                        	Log.d(TAG, "variables: filter_size: "+Integer.toString(filter_size)+" filter_min_change:"+Float.toString(filter_min_change));
 
                             // Process the gyroscope's values (3D so 3 values)
                             for (int k = 0; k < 3; k++) { // for each of the 3 dimensions of the gyro
@@ -144,11 +144,11 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 		                                if (filter_min_change <= 0.0f || // either filter min change threshold is disabled (value == 0)
 		                                		Math.abs(values[k] - filteredval) >= filter_min_change) { // or it is enabled (value > 0) and then we check if the current median difference with the previous sensor's value is above the minimum change threshold
 			                                // Set median in place of the value for this sensor's axis
-		                                	Log.d("MedianFilter", "MedianFilter moving axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(medianValues[k][1]));
+		                                	Log.d(TAG, "moving axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(medianValues[k][1]));
 			                                values[k] = filteredval;
 		                                } else {
 		                                	// else do not move this sensor's axis
-		                                	Log.d("MedianFilter", "MedianFilter NOT MOVING axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(medianValues[k][1]));
+		                                	Log.d(TAG, "NOT MOVING axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(medianValues[k][1]));
 		                                	values[k] = 0.0f; // nullify the sensor for this axis, so that it does not move
 		                                }
                                 	}
@@ -158,7 +158,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                                     	values[k] = (float)Math.floor(values[k] * filter_round_precision +.5) / filter_round_precision;
                                     }
 
-                                    Log.d("MedianFilter", "MedianFilter final value axis: "+k+" value: "+Float.toString(values[k]));
+                                    Log.d(TAG, "final value axis: "+k+" value: "+Float.toString(values[k]));
                                 }
 
                                 // Remember the current sensor's value
