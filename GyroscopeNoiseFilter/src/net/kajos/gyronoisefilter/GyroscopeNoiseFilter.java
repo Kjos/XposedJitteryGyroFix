@@ -257,20 +257,54 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
             XposedBridge.hookAllMethods(cla, "getHeadView", new
                     XC_MethodHook() {
 
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws
-                                Throwable {
-                            Log.d(TAG, "Hook 1!");
-                            super.afterHookedMethod(param);
-                            float[] values = (float[])param.args[0];
-                            Log.d(TAG, "BOBO1");
-                            for (int i = 0;i<values.length;i++) {
-                            	Log.d(TAG, "BOBO values: "+i+" : "+values[i]);
-                            	values[i] = 0.0f;
-                            }
-                            Log.d(TAG, "BOBO2");
+		    			// Pre-process for this hook
 
-                        }
+		    			// Set the number of values to anti-jitter
+		    			// You should edit this for each hook
+		            	int nbaxis = 13;
+
+		            	// Init the arrays
+		            	int filter_size = 10;
+		                float medianValues[][] = new float[nbaxis][filter_size]; // stores the last sensor's values in each dimension (3D so 3 dimensions)
+		                float prevValues[] = new float[nbaxis]; // stores the previous sensor's values to restore them if needed
+
+		                private void changeSensorEvent(float[] values) {
+		                	// Note about values[]:
+		                	// values[] contains the current sensor's value for each axis (there are 3 since it's in 3D).
+		                	// The values are measured in rad/s, which is standard since Android 2.3 (before, some phones can return values in deg/s).
+		                	// To get values of about 1.0 you have to turn at a speed of almost 60 deg/s.
+
+		                	// Anti-jitter the values!
+		                	// Externalizing the antiJitterValues() function (ie, putting it outside of the hook) allows us to reuse the same function for several hooks.
+		                	// However, the previous values and the history of the median values will be different for different hooks (because the values are different), so we need to preprocess the values and to store them in different arrays for each hook. That's why we do this pre-processing here (and above this function).
+		                	List<Object> retlist = antiJitterValues(true, values, medianValues, prevValues);
+
+		                	// Update the local arrays for this hook
+		                	medianValues = (float[][])retlist.get(0);
+		                	prevValues = (float[])retlist.get(1);
+		                }
+
+		                // Hook caller
+		                // This is where we tell what we should do when the hook is triggered (ie, when the hooked function/method is called)
+		                // Basically, we just check a few stuffs about the sensor's values and then we call our changeSensorEvent() to do the rest
+	                    @Override
+	                    protected void afterHookedMethod(MethodHookParam param) throws
+	                            Throwable {
+	                        Log.d(TAG, "Hook 1!");
+	                        super.afterHookedMethod(param);
+	                        float[] values = (float[])param.args[0];
+	                        Log.d(TAG, "BOBO1");
+		                    for (int i = 0;i<values.length;i++) {
+		                    	Log.d(TAG, "BOBO before values: "+i+" : "+values[i]);
+		                    	//values[i] = 0.0f;
+		                    }
+		                    changeSensorEvent(values);
+		                    for (int i = 0;i<values.length;i++) {
+		                    	Log.d(TAG, "BOBO after values: "+i+" : "+values[i]);
+		                    	//values[i] = 0.0f;
+		                    }
+	                        Log.d(TAG, "BOBO2");
+	                    }
                     });
 
             Log.d(TAG, "Installed cardboard head patch in: " + lpparam.packageName);
