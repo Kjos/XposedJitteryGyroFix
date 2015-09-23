@@ -180,8 +180,11 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
     	return retlist;
     }
 
+    // -- SystemSensorManager hook (system hook on the gyroscope for most apps)
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
+    	Log.d(TAG, "Package currently in: " + lpparam.packageName);
+
     	pref = new XSharedPreferences(GyroscopeNoiseFilter.class.getPackage().getName(), "pref_median"); // load the preferences using Xposed (necessary to be accessible from inside the hook, SharedPreferences() won't work)
     	pref.makeWorldReadable();
 
@@ -243,7 +246,8 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
             // Do nothing
         }
 
-        Log.d(TAG, "Package currently in: " + lpparam.packageName);
+        // -- Cardboard SDK hook: HeadTransform
+        // This is an optional hook (ie, it will hook only if the lib is used in the app), hence the try/catch
         /*
         try {
             final Class<?> cla = findClass(
@@ -276,7 +280,9 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
             // Do nothing
         }
         */
-        
+
+        // -- Cardboard SDK hook: Eye
+        // This is an optional hook (ie, it will hook only if the lib is used in the app), hence the try/catch
         try {
             final Class<?> cla = findClass(
                     "com.google.vrtoolkit.cardboard.Eye",
