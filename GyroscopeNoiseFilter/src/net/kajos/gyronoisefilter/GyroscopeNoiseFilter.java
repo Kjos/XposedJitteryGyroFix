@@ -124,13 +124,13 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	            	// remember that gyroscope's values are relative, so 0.0 means the sensor didn't move for a given axis, and any other value (positive or negative) means it rotated in the given axis
 	            	// so if the value is close to 0 but not quite, but still below than a minimum threshold, we consider that this is noise and we don't move
 	            	if (filter_stationary_min_change > 0.0f && (
-	            				(!absolute_mode && Math.abs(values[k]) < filter_stationary_min_change) ||
-	            				(absolute_mode && Math.abs(Math.abs(values[k]) - Math.abs(filteredval)) < filter_stationary_min_change)
+	            				(!absolute_mode && Math.abs(values[k]) < filter_stationary_min_change) || // with relative coordinates, it's easy to tell if we are close to the stationary state (ie, we don't move much, the acceleration is slow) because the stationary state is represented by 0.0f, and any movement is a greater (or negative) value, so we can easily cut the movement if it's too small (ie, probably a jitter)
+	            				(absolute_mode && Math.abs(Math.abs(values[k]) - Math.abs(prevValues[k])) < filter_stationary_min_change) // when the coordinates are absolute, the stationary_min_change degenerates into min_change because there's no way to tell if we are close to the stationary state
 	            				)
 	            			) {
-	            		Log.d(TAG, "NOT MOVING (stationary) axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
+	            		Log.d(TAG, "NOT MOVING (stationary) axis: "+k+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
 	            		if (absolute_mode) {
-	            			values[k] = filteredval;
+	            			values[k] = prevValues[k];
 	            		} else {
 	            			values[k] = 0.0f;
 	            		}
@@ -140,7 +140,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	            		// If the difference between the previous position and current's coordinate is lesser than a value, we nullify the coordinate (and the movement) for the current axis
 	                    if (filter_min_change > 0.0f && // either filter min change threshold is disabled (value == 0)
 	                    		Math.abs(Math.abs(values[k]) - Math.abs(prevValues[k])) < filter_min_change) { // or it is enabled (value > 0) and then we check if the current median difference with the previous sensor's value is above the minimum change threshold
-	                    	Log.d(TAG, "NOT MOVING (min change) axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
+	                    	Log.d(TAG, "NOT MOVING (min change) axis: "+k+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
 	                    	// nullify the sensor for this axis, so that it does not move
 	                    	if (absolute_mode) {
 	                    		values[k] = prevValues[k]; // in absolute coordinate mode, we restore the previous coordinate
@@ -150,14 +150,16 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	                    } else {
 	                    	// Else, it's ok, we can move the sensor
 	                        // Set median (or another filter's result) in place of the value for this sensor's axis
-	                    	Log.d(TAG, "moving axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
+	                    	Log.d(TAG, "moving axis: "+k+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
 	                        values[k] = filteredval;
 	                    }
 	            	}
 
 	                // Rounding the value
 	                if (filter_round_precision > 0) {
-	                	values[k] = (float)Math.floor(values[k] * filter_round_precision +.5) / filter_round_precision;
+	                	float rounded = (float)Math.floor(values[k] * filter_round_precision +.5) / filter_round_precision; 
+	                	Log.d(TAG, "before rounding: "+Float.toString(values[k])+" after rounding: "+Float.toString(rounded));
+	                	values[k] = rounded;
 	                }
 
 	                Log.d(TAG, "final value axis: "+k+" value: "+Float.toString(values[k]));
