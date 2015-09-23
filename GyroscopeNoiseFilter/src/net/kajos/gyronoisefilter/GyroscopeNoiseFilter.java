@@ -289,7 +289,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 
 		    			// Set the number of values to anti-jitter
             			// You should edit this for each hook
-		            	int nbaxis = 12;
+		            	int nbaxis = 13;
 
 		            	// Init the arrays
 		            	int filter_size = 10;
