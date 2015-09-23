@@ -157,7 +157,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 
 	                // Rounding the value
 	                if (filter_round_precision > 0) {
-	                	float rounded = (float)Math.floor(values[k] * filter_round_precision +.5) / filter_round_precision; 
+	                	float rounded = (float)(Math.floor(values[k] * Math.pow(10,filter_round_precision) +.5) / Math.pow(10,filter_round_precision));
 	                	Log.d(TAG, "before rounding: "+Float.toString(values[k])+" after rounding: "+Float.toString(rounded));
 	                	values[k] = rounded;
 	                }
