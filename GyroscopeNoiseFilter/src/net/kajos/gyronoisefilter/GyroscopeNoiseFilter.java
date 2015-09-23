@@ -180,9 +180,10 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                         }
                     });
 
-            XposedBridge.log("Installed sensorevent patch in: " + lpparam.packageName);
+            Log.d(TAG, "Installed sensorevent patch in: " + lpparam.packageName);
 
         } catch (Throwable t) {
+        	Log.d(TAG, "Exception in SystemSensorEvent hook: "+t.getMessage());
             // Do nothing
         }
 
@@ -200,19 +201,40 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                         protected void afterHookedMethod(MethodHookParam param) throws
                                 Throwable {
                             Log.d(TAG, "Hook 1!");
+                            super.afterHookedMethod(param);
+                            float[] values = (float[])param.args[0];
+                            Log.d(TAG, "BOBO1");
+                            for (int i = 0;i<values.length;i++) {
+                            	Log.d(TAG, "BOBO values: "+i+" : "+values[i]);
+                            	values[i] = 0.0f;
+                            }
+                            Log.d(TAG, "BOBO2");
+                            /*
                             Field field = param.thisObject.getClass().getDeclaredField("headView");
+                            Log.d(TAG, "HAHA1");
                             field.setAccessible(true);
-                            float[] headtrackerArray = (float[])field.get(param.args[0]);
+                            Log.d(TAG, "HAHA2");
+                            float[] values = (float[])param.args[0];
+                            for (int i = 0;i<values.length;i++) values[i] = 0.0f;
+                            Log.d(TAG, "HAHA3");
+                            float[] headtrackerArray = (float[])field.get(param.thisObject);
+                            Log.d(TAG, "HAHA4");
+                            for (int i = 0;i<headtrackerArray.length;i++) headtrackerArray[i] = 0.0f;
+                            Log.d(TAG, "HAHA5");
                             Log.d(TAG, "First value: " + headtrackerArray[0]);
                             headtrackerArray = (float[])getObjectField(param.thisObject, "headView");
+                            for (int i = 0;i<headtrackerArray.length;i++) headtrackerArray[i] = 0.0f;
+                            Log.d(TAG, "HAHA6");
                             Log.d(TAG, "First value: " + headtrackerArray[0]);
+                            */
 
                         }
                     });
 
-            Log.d(TAG, "Installed sensorevent patch in: " + lpparam.packageName);
+            Log.d(TAG, "Installed cardboard patch in: " + lpparam.packageName);
 
         } catch (Throwable t) {
+        	Log.d(TAG, "Exception in Cardboard hook: "+t.getMessage());
             // Do nothing
         }
     }
