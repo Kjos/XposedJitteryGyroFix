@@ -123,20 +123,22 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	            	// Min stationary value change threshold
 	            	// remember that gyroscope's values are relative, so 0.0 means the sensor didn't move for a given axis, and any other value (positive or negative) means it rotated in the given axis
 	            	// so if the value is close to 0 but not quite, but still below than a minimum threshold, we consider that this is noise and we don't move
-	            	if (filter_stationary_min_change > 0.0f && Math.abs(values[k]) <= filter_stationary_min_change) {
+	            	if (filter_stationary_min_change > 0.0f && Math.abs(values[k]) < filter_stationary_min_change) {
+	            		Log.d(TAG, "NOT MOVING (stationary) axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
 	            		values[k] = 0.0f;
 	            	} else {
 
 	            		// Min value change threshold
-	                    if (filter_min_change <= 0.0f || // either filter min change threshold is disabled (value == 0)
-	                    		Math.abs(values[k] - filteredval) >= filter_min_change) { // or it is enabled (value > 0) and then we check if the current median difference with the previous sensor's value is above the minimum change threshold
-	                        // Set median in place of the value for this sensor's axis
-	                    	Log.d(TAG, "moving axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(medianValues[k][1]));
-	                        values[k] = filteredval;
-	                    } else {
-	                    	// else do not move this sensor's axis
-	                    	Log.d(TAG, "NOT MOVING axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(medianValues[k][1]));
+	                    if (filter_min_change > 0.0f || // either filter min change threshold is disabled (value == 0)
+	                    		Math.abs(Math.abs(values[k]) - Math.abs(prevValues[k])) < filter_min_change) { // or it is enabled (value > 0) and then we check if the current median difference with the previous sensor's value is above the minimum change threshold
+	                    	// Do not move this sensor's axis
+	                    	Log.d(TAG, "NOT MOVING (min change) axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
 	                    	values[k] = 0.0f; // nullify the sensor for this axis, so that it does not move
+	                    } else {
+	                    	// Else, it's ok, we can move the sensor
+	                        // Set median (or another filter's result) in place of the value for this sensor's axis
+	                    	Log.d(TAG, "moving axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
+	                        values[k] = filteredval;
 	                    }
 	            	}
 
