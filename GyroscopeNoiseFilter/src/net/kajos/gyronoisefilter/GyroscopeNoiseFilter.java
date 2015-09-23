@@ -22,7 +22,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	public static XSharedPreferences pref;
     private static final String TAG = "GyroFilter";
 
-    private static List<Object> antiJitterValues(float[] values, float[][] medianValues, float[] prevValues) {
+    private static List<Object> antiJitterValues(boolean absolute_mode, float[] values, float[][] medianValues, float[] prevValues) {
     	try {
 	    	// Note about values[]:
 	    	// values[] contains the current sensor's value for each axis (there are 3 since it's in 3D).
@@ -118,22 +118,35 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	            }
 
 	            // Update the sensor's value for each axis
-	            if (values[k] != 0.0f) { // act on the sensor only if the value is not 0 (ie, if the sensor is moving, if it's not, we'd better stick to that and not replace the value with the median)
+	            if (absolute_mode || values[k] != 0.0f) { // act on the sensor only if the value is not 0 (ie, if the sensor is moving, if it's not, we'd better stick to that and not replace the value with the median), except if we are in absolute coordinate mode, then we always need to check the values
 
 	            	// Min stationary value change threshold
 	            	// remember that gyroscope's values are relative, so 0.0 means the sensor didn't move for a given axis, and any other value (positive or negative) means it rotated in the given axis
 	            	// so if the value is close to 0 but not quite, but still below than a minimum threshold, we consider that this is noise and we don't move
-	            	if (filter_stationary_min_change > 0.0f && Math.abs(values[k]) < filter_stationary_min_change) {
+	            	if (filter_stationary_min_change > 0.0f && (
+	            				(!absolute_mode && Math.abs(values[k]) < filter_stationary_min_change) ||
+	            				(absolute_mode && Math.abs(Math.abs(values[k]) - Math.abs(filteredval)) < filter_stationary_min_change)
+	            				)
+	            			) {
 	            		Log.d(TAG, "NOT MOVING (stationary) axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
-	            		values[k] = 0.0f;
+	            		if (absolute_mode) {
+	            			values[k] = filteredval;
+	            		} else {
+	            			values[k] = 0.0f;
+	            		}
 	            	} else {
 
 	            		// Min value change threshold
-	                    if (filter_min_change > 0.0f || // either filter min change threshold is disabled (value == 0)
+	            		// If the difference between the previous position and current's coordinate is lesser than a value, we nullify the coordinate (and the movement) for the current axis
+	                    if (filter_min_change > 0.0f && // either filter min change threshold is disabled (value == 0)
 	                    		Math.abs(Math.abs(values[k]) - Math.abs(prevValues[k])) < filter_min_change) { // or it is enabled (value > 0) and then we check if the current median difference with the previous sensor's value is above the minimum change threshold
-	                    	// Do not move this sensor's axis
 	                    	Log.d(TAG, "NOT MOVING (min change) axis: "+k+" median: "+Float.toString(filteredval)+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
-	                    	values[k] = 0.0f; // nullify the sensor for this axis, so that it does not move
+	                    	// nullify the sensor for this axis, so that it does not move
+	                    	if (absolute_mode) {
+	                    		values[k] = prevValues[k]; // in absolute coordinate mode, we restore the previous coordinate
+	                    	} else {
+	                    		values[k] = 0.0f; // else in relative mode, we just set to 0
+	                    	}
 	                    } else {
 	                    	// Else, it's ok, we can move the sensor
 	                        // Set median (or another filter's result) in place of the value for this sensor's axis
@@ -197,7 +210,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
                         	// Anti-jitter the values!
                         	// Externalizing the antiJitterValues() function (ie, putting it outside of the hook) allows us to reuse the same function for several hooks.
                         	// However, the previous values and the history of the median values will be different for different hooks (because the values are different), so we need to preprocess the values and to store them in different arrays for each hook. That's why we do this pre-processing here (and above this function).
-                        	List<Object> retlist = antiJitterValues(values, medianValues, prevValues);
+                        	List<Object> retlist = antiJitterValues(false, values, medianValues, prevValues);
 
                         	// Update the local arrays for this hook
                         	medianValues = (float[][])retlist.get(0);
@@ -290,7 +303,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 		                	// Anti-jitter the values!
 		                	// Externalizing the antiJitterValues() function (ie, putting it outside of the hook) allows us to reuse the same function for several hooks.
 		                	// However, the previous values and the history of the median values will be different for different hooks (because the values are different), so we need to preprocess the values and to store them in different arrays for each hook. That's why we do this pre-processing here (and above this function).
-		                	List<Object> retlist = antiJitterValues(values, medianValues, prevValues);
+		                	List<Object> retlist = antiJitterValues(true, values, medianValues, prevValues);
 
 		                	// Update the local arrays for this hook
 		                	medianValues = (float[][])retlist.get(0);
