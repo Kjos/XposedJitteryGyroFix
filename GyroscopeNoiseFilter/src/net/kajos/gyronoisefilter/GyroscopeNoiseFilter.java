@@ -315,6 +315,9 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
         }
         */
 
+	/* This doesn't have a purpose. If this works then the original hook should also work.
+	Removed this part because it seems to crash certain apps as also reported on Github (Youtube 360).
+	
         // -- Cardboard SDK hook: Eye
         // This is an optional hook (ie, it will hook only if the lib is used in the app), hence the try/catch
         try {
@@ -382,6 +385,7 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
         	Log.e(TAG, "Exception in Cardboard Eye hook: "+t.getMessage());
             // Do nothing
         }
+        */
     }
 
     /**
