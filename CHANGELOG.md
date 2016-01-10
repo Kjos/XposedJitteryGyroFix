@@ -1,5 +1,8 @@
 # CHANGELOG
 
+- 1.6:
+  * fixed youtube not playing videos when module activated.
+
 - v1.5:
  * refactoring methods to be modular (to support multiple hooks)
  * added hook for apps using Cardboard SDK's orientation provider
