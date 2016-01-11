@@ -33,7 +33,6 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	    	int nbaxis = medianValues.length;
 	    	int filter_size = medianValues[0].length;
 	    	float tmpArray[] = new float[filter_size]; // used to temporarily copy medianValues to compute the median
-	    	Log.d(TAG, "nbaxis: "+Integer.toString(nbaxis)+" filter_size: "+Integer.toString(filter_size));
 
 	    	// Get preferences
 	    	pref.makeWorldReadable(); // try to make the preferences world readable (because here we are inside the hook, we are not in our app anymore, so normally we do not have the rights to access the preferences of our app)
@@ -64,7 +63,6 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	    				medianValues[k][i] = cpyArray[k][i];
 	    			}
 	    		}
-	    		Log.d(TAG, "variables: filter_size: "+Integer.toString(filter_size)+" filter_size_new: "+Integer.toString(filter_size_new)+" filter_min_change:"+Float.toString(filter_min_change));
 	    		// Update the filter size counter
 	    		filter_size = filter_size_new;
 	    	}
@@ -77,7 +75,12 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	            }
 
 	            // Add new value (insert at index 0)
-	            medianValues[k][0] = values[k];
+				if (values[k] != values[k]) {
+					Log.d(TAG, "Found NaN value! Skipped this one.");
+					continue;
+				}
+
+				medianValues[k][0] = values[k];
 
 	            // -- Compute the median and replace the current gyroscope's value
 
@@ -128,7 +131,6 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	            				(absolute_mode && Math.abs(Math.abs(values[k]) - Math.abs(prevValues[k])) < filter_stationary_min_change) // when the coordinates are absolute, the stationary_min_change degenerates into min_change because there's no way to tell if we are close to the stationary state
 	            				)
 	            			) {
-	            		Log.d(TAG, "NOT MOVING (stationary) axis: "+k+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
 	            		if (absolute_mode) {
 	            			values[k] = prevValues[k];
 	            		} else {
@@ -140,7 +142,6 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	            		// If the difference between the previous position and current's coordinate is lesser than a value, we nullify the coordinate (and the movement) for the current axis
 	                    if (filter_min_change > 0.0f && // either filter min change threshold is disabled (value == 0)
 	                    		Math.abs(Math.abs(values[k]) - Math.abs(prevValues[k])) < filter_min_change) { // or it is enabled (value > 0) and then we check if the current median difference with the previous sensor's value is above the minimum change threshold
-	                    	Log.d(TAG, "NOT MOVING (min change) axis: "+k+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
 	                    	// nullify the sensor for this axis, so that it does not move
 	                    	if (absolute_mode) {
 	                    		values[k] = prevValues[k]; // in absolute coordinate mode, we restore the previous coordinate
@@ -150,7 +151,6 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	                    } else {
 	                    	// Else, it's ok, we can move the sensor
 	                        // Set median (or another filter's result) in place of the value for this sensor's axis
-	                    	Log.d(TAG, "moving axis: "+k+" current_val:"+Float.toString(values[k])+" previous_val:"+Float.toString(prevValues[k])+" filtered_val:"+Float.toString(filteredval));
 	                        values[k] = filteredval;
 	                    }
 	            	}
@@ -158,11 +158,8 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
 	                // Rounding the value
 	                if (filter_round_precision > 0) {
 	                	float rounded = (float)(Math.floor(values[k] * Math.pow(10,filter_round_precision) +.5) / Math.pow(10,filter_round_precision));
-	                	Log.d(TAG, "before rounding: "+Float.toString(values[k])+" after rounding: "+Float.toString(rounded));
 	                	values[k] = rounded;
 	                }
-
-	                Log.d(TAG, "final value axis: "+k+" value: "+Float.toString(values[k]));
 	            }
 
 	            // Remember the current sensor's value
@@ -188,204 +185,183 @@ public class GyroscopeNoiseFilter implements IXposedHookLoadPackage {
     	pref = new XSharedPreferences(GyroscopeNoiseFilter.class.getPackage().getName(), "pref_median"); // load the preferences using Xposed (necessary to be accessible from inside the hook, SharedPreferences() won't work)
     	pref.makeWorldReadable();
 
-        try {
-            final Class<?> sensorEQ = findClass(
-                    "android.hardware.SystemSensorManager$SensorEventQueue",
-                    lpparam.classLoader);
+		String filter_type = pref.getString("hook_type", "Most compatible hook");
+		if (filter_type.equals("hook1")) {
+			try {
+				final Class<?> sensorEQ = findClass(
+						"android.hardware.SystemSensorManager$SensorEventQueue",
+						lpparam.classLoader);
 
-            XposedBridge.hookAllMethods(sensorEQ, "dispatchSensorEvent", new
-                    XC_MethodHook() {
-            			// Pre-process for this hook
+				XposedBridge.hookAllMethods(sensorEQ, "dispatchSensorEvent", new
+						XC_MethodHook() {
+							// Pre-process for this hook
 
-            			// Set the number of values to anti-jitter
-            			// You should edit this for each hook
-                    	int nbaxis = 3;
+							// Set the number of values to anti-jitter
+							// You should edit this for each hook
+							int nbaxis = 3;
 
-		            	// Init the arrays
-                    	int filter_size = 10;
-                        float medianValues[][] = new float[nbaxis][filter_size]; // stores the last sensor's values in each dimension (3D so 3 dimensions)
-                        float prevValues[] = new float[nbaxis]; // stores the previous sensor's values to restore them if needed
+							// Init the arrays
+							int filter_size = 10;
+							float medianValues[][] = new float[nbaxis][filter_size]; // stores the last sensor's values in each dimension (3D so 3 dimensions)
+							float prevValues[] = new float[nbaxis]; // stores the previous sensor's values to restore them if needed
 
-                        private void changeSensorEvent(float[] values) {
-                        	// Note about values[]:
-                        	// values[] contains the current sensor's value for each axis (there are 3 since it's in 3D).
-                        	// The values are measured in rad/s, which is standard since Android 2.3 (before, some phones can return values in deg/s).
-                        	// To get values of about 1.0 you have to turn at a speed of almost 60 deg/s.
+							private void changeSensorEvent(float[] values) {
+								// Note about values[]:
+								// values[] contains the current sensor's value for each axis (there are 3 since it's in 3D).
+								// The values are measured in rad/s, which is standard since Android 2.3 (before, some phones can return values in deg/s).
+								// To get values of about 1.0 you have to turn at a speed of almost 60 deg/s.
 
-                        	// Anti-jitter the values!
-                        	// Externalizing the antiJitterValues() function (ie, putting it outside of the hook) allows us to reuse the same function for several hooks.
-                        	// However, the previous values and the history of the median values will be different for different hooks (because the values are different), so we need to preprocess the values and to store them in different arrays for each hook. That's why we do this pre-processing here (and above this function).
-                        	List<Object> retlist = antiJitterValues(false, values, medianValues, prevValues);
+								// Anti-jitter the values!
+								// Externalizing the antiJitterValues() function (ie, putting it outside of the hook) allows us to reuse the same function for several hooks.
+								// However, the previous values and the history of the median values will be different for different hooks (because the values are different), so we need to preprocess the values and to store them in different arrays for each hook. That's why we do this pre-processing here (and above this function).
+								List<Object> retlist = antiJitterValues(false, values, medianValues, prevValues);
 
-                        	// Update the local arrays for this hook
-                        	medianValues = (float[][])retlist.get(0);
-                        	prevValues = (float[])retlist.get(1);
-                        }
+								// Update the local arrays for this hook
+								medianValues = (float[][]) retlist.get(0);
+								prevValues = (float[]) retlist.get(1);
+							}
 
-                        // Hook caller
-                        // This is where we tell what we should do when the hook is triggered (ie, when the hooked function/method is called)
-                        // Basically, we just check a few stuffs about the sensor's values and then we call our changeSensorEvent() to do the rest
-                        @SuppressWarnings("unchecked")
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws
-                                Throwable {
-                            Field field = param.thisObject.getClass().getEnclosingClass().getDeclaredField("sHandleToSensor");
-                            field.setAccessible(true);
-                            int handle = (Integer) param.args[0];
-                            Sensor ss = ((SparseArray<Sensor>) field.get(0)).get(handle);
-                            if(ss.getType() == Sensor.TYPE_GYROSCOPE || ss.getType() == Sensor.TYPE_GYROSCOPE_UNCALIBRATED){
-                                changeSensorEvent((float[]) param.args[1]);
-                            }
-                        }
-                    });
+							// Hook caller
+							// This is where we tell what we should do when the hook is triggered (ie, when the hooked function/method is called)
+							// Basically, we just check a few stuffs about the sensor's values and then we call our changeSensorEvent() to do the rest
+							@SuppressWarnings("unchecked")
+							@Override
+							protected void beforeHookedMethod(MethodHookParam param) throws
+									Throwable {
+								Field field = param.thisObject.getClass().getEnclosingClass().getDeclaredField("sHandleToSensor");
+								field.setAccessible(true);
+								int handle = (Integer) param.args[0];
+								Sensor ss = ((SparseArray<Sensor>) field.get(0)).get(handle);
+								if (ss.getType() == Sensor.TYPE_GYROSCOPE || ss.getType() == Sensor.TYPE_GYROSCOPE_UNCALIBRATED) {
+									changeSensorEvent((float[]) param.args[1]);
+								}
+							}
+						});
 
-            Log.d(TAG, "Installed sensorevent patch in: " + lpparam.packageName);
+				Log.d(TAG, "Installed sensorevent patch in: " + lpparam.packageName);
 
-        } catch (Throwable t) {
-        	Log.e(TAG, "Exception in SystemSensorEvent hook: "+t.getMessage());
-            // Do nothing
-        }
+			} catch (Throwable t) {
+				Log.e(TAG, "Exception in SystemSensorEvent hook: " + t.getMessage());
+				// Do nothing
+			}
+		} else if (filter_type.equals("hook2")) {
+			// -- Cardboard SDK hook: HeadTransform
+			// This is an optional hook (ie, it will hook only if the lib is used in the app), hence the try/catch
+			try {
+				final Class<?> cla = findClass(
+						"com.google.vrtoolkit.cardboard.HeadTransform",
+						lpparam.classLoader);
 
-        // -- Cardboard SDK hook: HeadTransform
-        // This is an optional hook (ie, it will hook only if the lib is used in the app), hence the try/catch
-        /*
-        try {
-            final Class<?> cla = findClass(
-                    "com.google.vrtoolkit.cardboard.HeadTransform",
-                    lpparam.classLoader);
+				XposedBridge.hookAllMethods(cla, "getHeadView", new
+						XC_MethodHook() {
 
-            XposedBridge.hookAllMethods(cla, "getHeadView", new
-                    XC_MethodHook() {
+							// Pre-process for this hook
 
-		    			// Pre-process for this hook
+							// Set the number of values to anti-jitter
+							// You should edit this for each hook
+							// Now set to size of 4x4 matrix
+							int nbaxis = 16;
 
-		    			// Set the number of values to anti-jitter
-		    			// You should edit this for each hook
-		            	int nbaxis = 13;
+							// Init the arrays
+							int filter_size = 10;
+							float medianValues[][] = new float[nbaxis][filter_size]; // stores the last sensor's values in each dimension (3D so 3 dimensions)
+							float prevValues[] = new float[nbaxis]; // stores the previous sensor's values to restore them if needed
 
-		            	// Init the arrays
-		            	int filter_size = 10;
-		                float medianValues[][] = new float[nbaxis][filter_size]; // stores the last sensor's values in each dimension (3D so 3 dimensions)
-		                float prevValues[] = new float[nbaxis]; // stores the previous sensor's values to restore them if needed
+							private void changeSensorEvent(float[] values) {
+								// Note about values[]:
+								// values[] contains the current sensor's value for each axis (there are 3 since it's in 3D).
+								// The values are measured in rad/s, which is standard since Android 2.3 (before, some phones can return values in deg/s).
+								// To get values of about 1.0 you have to turn at a speed of almost 60 deg/s.
 
-		                private void changeSensorEvent(float[] values) {
-		                	// Note about values[]:
-		                	// values[] contains the current sensor's value for each axis (there are 3 since it's in 3D).
-		                	// The values are measured in rad/s, which is standard since Android 2.3 (before, some phones can return values in deg/s).
-		                	// To get values of about 1.0 you have to turn at a speed of almost 60 deg/s.
+								// Anti-jitter the values!
+								// Externalizing the antiJitterValues() function (ie, putting it outside of the hook) allows us to reuse the same function for several hooks.
+								// However, the previous values and the history of the median values will be different for different hooks (because the values are different), so we need to preprocess the values and to store them in different arrays for each hook. That's why we do this pre-processing here (and above this function).
+								List<Object> retlist = antiJitterValues(true, values, medianValues, prevValues);
 
-		                	// Anti-jitter the values!
-		                	// Externalizing the antiJitterValues() function (ie, putting it outside of the hook) allows us to reuse the same function for several hooks.
-		                	// However, the previous values and the history of the median values will be different for different hooks (because the values are different), so we need to preprocess the values and to store them in different arrays for each hook. That's why we do this pre-processing here (and above this function).
-		                	List<Object> retlist = antiJitterValues(true, values, medianValues, prevValues);
+								// Update the local arrays for this hook
+								medianValues = (float[][])retlist.get(0);
+								prevValues = (float[])retlist.get(1);
+							}
 
-		                	// Update the local arrays for this hook
-		                	medianValues = (float[][])retlist.get(0);
-		                	prevValues = (float[])retlist.get(1);
-		                }
+							// Hook caller
+							// This is where we tell what we should do when the hook is triggered (ie, when the hooked function/method is called)
+							// Basically, we just check a few stuffs about the sensor's values and then we call our changeSensorEvent() to do the rest
+							@Override
+							protected void afterHookedMethod(MethodHookParam param) throws
+									Throwable {
+								Log.d(TAG, "Hook 1!");
+								super.afterHookedMethod(param);
+								float[] values = (float[])param.args[0];
+								changeSensorEvent(values);
+							}
+						});
 
-		                // Hook caller
-		                // This is where we tell what we should do when the hook is triggered (ie, when the hooked function/method is called)
-		                // Basically, we just check a few stuffs about the sensor's values and then we call our changeSensorEvent() to do the rest
-	                    @Override
-	                    protected void afterHookedMethod(MethodHookParam param) throws
-	                            Throwable {
-	                        Log.d(TAG, "Hook 1!");
-	                        super.afterHookedMethod(param);
-	                        float[] values = (float[])param.args[0];
-	                        Log.d(TAG, "BOBO1");
-		                    for (int i = 0;i<values.length;i++) {
-		                    	Log.d(TAG, "BOBO before values: "+i+" : "+values[i]);
-		                    	//values[i] = 0.0f;
-		                    }
-		                    changeSensorEvent(values);
-		                    for (int i = 0;i<values.length;i++) {
-		                    	Log.d(TAG, "BOBO after values: "+i+" : "+values[i]);
-		                    	//values[i] = 0.0f;
-		                    }
-	                        Log.d(TAG, "BOBO2");
-	                    }
-                    });
+				Log.d(TAG, "Installed cardboard head patch in: " + lpparam.packageName);
 
-            Log.d(TAG, "Installed cardboard head patch in: " + lpparam.packageName);
+			} catch (Throwable t) {
+				Log.e(TAG, "Exception in Cardboard Head hook: "+t.getMessage());
+				// Do nothing
+			}
 
-        } catch (Throwable t) {
-        	Log.e(TAG, "Exception in Cardboard Head hook: "+t.getMessage());
-            // Do nothing
-        }
-        */
+		} else if (filter_type.equals("hook3")) {
+			// -- Cardboard SDK hook: Eye
+			// This is an optional hook (ie, it will hook only if the lib is used in the app), hence the try/catch
+			try {
+				final Class<?> cla = findClass(
+						"com.google.vrtoolkit.cardboard.Eye",
+						lpparam.classLoader);
 
-	/* This doesn't have a purpose. If this works then the original hook should also work.
-	Removed this part because it seems to crash certain apps as also reported on Github (Youtube 360).
-	
-        // -- Cardboard SDK hook: Eye
-        // This is an optional hook (ie, it will hook only if the lib is used in the app), hence the try/catch
-        try {
-            final Class<?> cla = findClass(
-                    "com.google.vrtoolkit.cardboard.Eye",
-                    lpparam.classLoader);
+				XposedBridge.hookAllMethods(cla, "getEyeView", new
+						XC_MethodHook() {
 
-            XposedBridge.hookAllMethods(cla, "getEyeView", new
-                    XC_MethodHook() {
+							// Pre-process for this hook
 
-		    			// Pre-process for this hook
+							// Set the number of values to anti-jitter
+							// You should edit this for each hook
+							// Now set to size of 4x4 matrix
+							int nbaxis = 16;
 
-		    			// Set the number of values to anti-jitter
-            			// You should edit this for each hook
-		            	int nbaxis = 13;
+							// Init the arrays
+							int filter_size = 10;
+							float medianValues[][] = new float[nbaxis][filter_size]; // stores the last sensor's values in each dimension (3D so 3 dimensions)
+							float prevValues[] = new float[nbaxis]; // stores the previous sensor's values to restore them if needed
 
-		            	// Init the arrays
-		            	int filter_size = 10;
-		                float medianValues[][] = new float[nbaxis][filter_size]; // stores the last sensor's values in each dimension (3D so 3 dimensions)
-		                float prevValues[] = new float[nbaxis]; // stores the previous sensor's values to restore them if needed
+							private void changeSensorEvent(float[] values) {
+								// Note about values[]:
+								// values[] contains the current sensor's value for each axis (there are 3 since it's in 3D).
+								// The values are measured in rad/s, which is standard since Android 2.3 (before, some phones can return values in deg/s).
+								// To get values of about 1.0 you have to turn at a speed of almost 60 deg/s.
 
-		                private void changeSensorEvent(float[] values) {
-		                	// Note about values[]:
-		                	// values[] contains the current sensor's value for each axis (there are 3 since it's in 3D).
-		                	// The values are measured in rad/s, which is standard since Android 2.3 (before, some phones can return values in deg/s).
-		                	// To get values of about 1.0 you have to turn at a speed of almost 60 deg/s.
+								// Anti-jitter the values!
+								// Externalizing the antiJitterValues() function (ie, putting it outside of the hook) allows us to reuse the same function for several hooks.
+								// However, the previous values and the history of the median values will be different for different hooks (because the values are different), so we need to preprocess the values and to store them in different arrays for each hook. That's why we do this pre-processing here (and above this function).
+								List<Object> retlist = antiJitterValues(true, values, medianValues, prevValues);
 
-		                	// Anti-jitter the values!
-		                	// Externalizing the antiJitterValues() function (ie, putting it outside of the hook) allows us to reuse the same function for several hooks.
-		                	// However, the previous values and the history of the median values will be different for different hooks (because the values are different), so we need to preprocess the values and to store them in different arrays for each hook. That's why we do this pre-processing here (and above this function).
-		                	List<Object> retlist = antiJitterValues(true, values, medianValues, prevValues);
+								// Update the local arrays for this hook
+								medianValues = (float[][]) retlist.get(0);
+								prevValues = (float[]) retlist.get(1);
+							}
 
-		                	// Update the local arrays for this hook
-		                	medianValues = (float[][])retlist.get(0);
-		                	prevValues = (float[])retlist.get(1);
-		                }
+							// Hook caller
+							// This is where we tell what we should do when the hook is triggered (ie, when the hooked function/method is called)
+							// Basically, we just check a few stuffs about the sensor's values and then we call our changeSensorEvent() to do the rest
 
-		                // Hook caller
-		                // This is where we tell what we should do when the hook is triggered (ie, when the hooked function/method is called)
-		                // Basically, we just check a few stuffs about the sensor's values and then we call our changeSensorEvent() to do the rest
+							@Override
+							protected void afterHookedMethod(MethodHookParam param) throws
+									Throwable {
+								super.afterHookedMethod(param);
+								float[] values = (float[]) param.getResult();
+								changeSensorEvent(values);
+							}
+						});
 
-                        @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws
-                                Throwable {
-                            Log.d(TAG, "Hook 2!");
-                            super.afterHookedMethod(param);
-                            float[] values = (float[])param.getResult();
-                            Log.d(TAG, "BABA1");
-                            for (int i = 0;i<values.length;i++) {
-                            	Log.d(TAG, "BABA before values: "+i+" : "+values[i]);
-                            	//values[i] = 0.0f;
-                            }
-                            changeSensorEvent(values);
-                            for (int i = 0;i<values.length;i++) {
-                            	Log.d(TAG, "BABA after values: "+i+" : "+values[i]);
-                            	//values[i] = 0.0f;
-                            }
-                            Log.d(TAG, "BABA2");
-                        }
-                    });
+				Log.d(TAG, "Installed cardboard eye patch in: " + lpparam.packageName);
 
-            Log.d(TAG, "Installed cardboard eye patch in: " + lpparam.packageName);
-
-        } catch (Throwable t) {
-        	Log.e(TAG, "Exception in Cardboard Eye hook: "+t.getMessage());
-            // Do nothing
-        }
-        */
+			} catch (Throwable t) {
+				Log.e(TAG, "Exception in Cardboard Eye hook: " + t.getMessage());
+				// Do nothing
+			}
+		}
     }
 
     /**
