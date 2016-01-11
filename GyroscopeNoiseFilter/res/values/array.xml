@@ -1,20 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
  <resources>
-     <string name="filter_type_default">median</string>
-     <string name="filter_size_default">10</string>
-     <string name="filter_alpha_default">-1</string>
-     <string name="filter_min_change_default">0.0</string>
-     <string name="filter_stationary_min_change_default">0.0</string>
-     <string name="filter_round_precision_default">0</string>
-     
-     <string-array name="filter_type_options">
+	<string name="hook_type_default">hook1</string>
+	<string name="filter_type_default">median</string>
+	<string name="filter_size_default">10</string>
+	<string name="filter_alpha_default">-1</string>
+	<string name="filter_min_change_default">0.0</string>
+	<string name="filter_stationary_min_change_default">0.0</string>
+	<string name="filter_round_precision_default">0</string>
+	
+	<string-array name="hook_type_options">
+		<item>Most compatible hook</item>
+		<item>Cardboard hook 1</item>
+		<item>Cardboard hook 2</item>
+	</string-array>
+	<string-array name="hook_type_options_alias">
+		<item>hook1</item>
+		<item>hook2</item>
+		<item>hook3</item>
+	</string-array>
+	<string-array name="filter_type_options">
 	    <item>Median</item>
 	    <item>Mean (running average)</item>
 	    <item>Low-pass filter</item>
 	    <item>Additive smoothing (experimental)</item>
 	    <item>None (disable)</item>
 	 </string-array>
-     <string-array name="filter_type_options_alias">
+	<string-array name="filter_type_options_alias">
 	    <item>median</item>
 	    <item>mean</item>
 	    <item>lowpass</item>
