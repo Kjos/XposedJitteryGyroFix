@@ -9,6 +9,8 @@
     <string name="catpref_title_other">Other Settings</string>
     <string name="catpref_summary_other">Setup other anti-jittering options (independently of the filter)</string>
 
+    <string name="pref_title_hook_type">Hook type</string>
+    <string name="pref_summary_hook_type">Type of the hook that will be used</string>
     <string name="pref_title_filter_type">Filter type</string>
     <string name="pref_summary_filter_type">Type of the filter that will be used</string>
     <string name="pref_title_filter_size">Filter size</string>
