@@ -1,5 +1,8 @@
 # CHANGELOG
 
+- 1.7:
+  * added hook switch for compatibility
+  * 
 - 1.6:
   * fixed youtube not playing videos when module activated.
 
