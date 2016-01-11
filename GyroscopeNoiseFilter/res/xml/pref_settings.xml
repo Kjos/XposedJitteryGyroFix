@@ -3,6 +3,13 @@
  <PreferenceCategory
    android:title="@string/catpref_title_filter"
    android:summary="@string/catpref_summary_filter" >
+     <ListPreference
+             android:key="hook_type"
+             android:title="@string/pref_title_hook_type"
+             android:summary="@string/pref_summary_hook_type"
+             android:entries="@array/hook_type_options"
+             android:entryValues="@array/hook_type_options_alias"
+             android:defaultValue="@string/hook_type_default"/>
    <ListPreference 
     android:key="filter_type"
     android:title="@string/pref_title_filter_type"
